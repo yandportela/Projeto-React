@@ -14,11 +14,22 @@ function MenuLateral({ aberto, setTela }) {
         <button className="btn btn-outline-light text-start" onClick={() => setTela('inicio')}>
           Início
         </button>
+
+        {/* Botão de Login adicionado antes do submenu Cadastro */}
+        <button className="btn btn-outline-info text-start" onClick={() => setTela('login')}>
+          Login
+        </button>
+
         <button className="btn btn-outline-light text-start" onClick={alterarCadastro}>
           Cadastro {cadastroAberto ? '▲' : '▼'}
         </button>
+
         {cadastroAberto && (
           <div className="ms-3 d-grid gap-2">
+            {/* Subitem Usuários adicionado ao submenu */}
+            <button className="btn btn-sm btn-dark text-start" onClick={() => setTela('usuarios')}>
+              Usuários
+            </button>
             <button className="btn btn-sm btn-dark text-start" onClick={() => setTela('safra')}>Safra</button>
             <button className="btn btn-sm btn-dark text-start" onClick={() => setTela('unidade')}>Unidade</button>
             <button className="btn btn-sm btn-dark text-start" onClick={() => setTela('equipamento')}>Equipamento</button>

@@ -1,154 +1,57 @@
-import { useRef, useState } from 'react'
+import { useState, useEffect } from 'react'
 
 function Funcionarios() {
   const [nome, setNome] = useState('')
-  const [email, setEmail] = useState('')
-  const [telefone, setTelefone] = useState('')
-  const [setor, setSetor] = useState('')
-  const [foto, setFoto] = useState(null)
-  const [previewFoto, setPreviewFoto] = useState(null)
-  const [erroCamera, setErroCamera] = useState('')
-  const [erros, setErros] = useState({})
-  const [mensagem, setMensagem] = useState('')
-  const videoRef = useRef(null)
-  const canvasRef = useRef(null)
+  const [cargo, setCargo] = useState('')
+  const [lista, setLista] = useState([])
 
-  function selecionarFoto(event) {
-    const arquivo = event.target.files[0]
-    if (arquivo) {
-      setFoto(arquivo)
-      setPreviewFoto(URL.createObjectURL(arquivo))
-      setErroCamera('')
+  // Carrega a lista salva do localStorage ao iniciar
+  useEffect(() => {
+    const dadosSalvos = localStorage.getItem('funcionarios')
+    if (dadosSalvos) {
+      setLista(JSON.parse(dadosSalvos))
     }
-  }
+  }, [])
 
-  async function abrirCamera() {
-    try {
-      setErroCamera('')
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-      videoRef.current.srcObject = stream
-    } catch (erro) {
-      setErroCamera('Não foi possível acessar a câmera. Verifique a permissão ou selecione uma imagem do computador.')
-    }
-  }
+  function salvar(e) {
+    e.preventDefault()
+    if (!nome || !cargo) return
 
-  function capturarFoto() {
-    const video = videoRef.current
-    const canvas = canvasRef.current
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    const contexto = canvas.getContext('2d')
-    contexto.drawImage(video, 0, 0, canvas.width, canvas.height)
-    const imagem = canvas.toDataURL('image/jpeg')
-    setPreviewFoto(imagem)
-  }
+    const novoFuncionario = { id: Date.now(), nome, cargo }
+    const novaLista = [...lista, novoFuncionario]
 
-  function salvar(event) {
-    event.preventDefault()
-    const novosErros = {}
-    if (nome.trim() === '') novosErros.nome = 'Informe o nome'
-    if (email.trim() === '') novosErros.email = 'Informe o e-mail'
-    if (telefone.trim() === '') novosErros.telefone = 'Informe o telefone'
-    if (setor === '') novosErros.setor = 'Selecione o setor'
-    if (!previewFoto) novosErros.foto = 'Selecione ou capture uma foto'
-    setErros(novosErros)
-    if (Object.keys(novosErros).length > 0) {
-      setMensagem('')
-      return
-    }
-    setMensagem('Funcionário cadastrado com sucesso!')
+    setLista(novaLista)
+    // Grava o array como texto JSON no localStorage
+    localStorage.setItem('funcionarios', JSON.stringify(novaLista))
+
+    setNome('')
+    setCargo('')
   }
 
   return (
     <section className="p-4">
-      <h2 className="mb-4">Cadastro de Funcionário</h2>
-      {mensagem && <div className="alert alert-success">{mensagem}</div>}
-      {erroCamera && <div className="alert alert-warning">{erroCamera}</div>}
-      <form onSubmit={salvar}>
-        <div className="row">
-          <div className="col-md-7">
-            <div className="mb-3">
-              <label className="form-label">Nome</label>
-              <input
-                type="text"
-                className={`form-control ${erros.nome ? 'is-invalid' : ''}`}
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-              />
-              {erros.nome && <div className="invalid-feedback">{erros.nome}</div>}
-            </div>
-            <div className="mb-3">
-              <label className="form-label">E-mail</label>
-              <input
-                type="email"
-                className={`form-control ${erros.email ? 'is-invalid' : ''}`}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              {erros.email && <div className="invalid-feedback">{erros.email}</div>}
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Telefone</label>
-              <input
-                type="text"
-                className={`form-control ${erros.telefone ? 'is-invalid' : ''}`}
-                value={telefone}
-                onChange={(e) => setTelefone(e.target.value)}
-              />
-              {erros.telefone && <div className="invalid-feedback">{erros.telefone}</div>}
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Setor</label>
-              <select
-                className={`form-select ${erros.setor ? 'is-invalid' : ''}`}
-                value={setor}
-                onChange={(e) => setSetor(e.target.value)}
-              >
-                <option value="">Selecione</option>
-                <option value="Administrativo">Administrativo</option>
-                <option value="Produção">Produção</option>
-                <option value="Manutenção">Manutenção</option>
-                <option value="TI">TI</option>
-              </select>
-              {erros.setor && <div className="invalid-feedback">{erros.setor}</div>}
-            </div>
-          </div>
-          <div className="col-md-5">
-            <label className="form-label">Foto do funcionário</label>
-            <input
-              type="file"
-              accept="image/*"
-              className={`form-control mb-3 ${erros.foto ? 'is-invalid' : ''}`}
-              onChange={selecionarFoto}
-            />
-            {erros.foto && <div className="text-danger small mb-2">{erros.foto}</div>}
-            {previewFoto && (
-              <img
-                src={previewFoto}
-                alt="Pré-visualização"
-                className="img-thumbnail mb-3"
-                style={{ width: '220px', height: '220px', objectFit: 'cover' }}
-              />
-            )}
-            <div className="mb-3">
-              <button type="button" className="btn btn-success me-2" onClick={abrirCamera}>
-                Usar câmera
-              </button>
-              <button type="button" className="btn btn-outline-success" onClick={capturarFoto}>
-                Capturar foto
-              </button>
-            </div>
-            <video
-              ref={videoRef}
-              autoPlay
-              className="img-thumbnail mb-3"
-              style={{ width: '320px', display: 'block' }}
-            />
-            <canvas ref={canvasRef} style={{ display: 'none' }} />
-          </div>
+      <h2>Cadastro de Funcionários (Múltiplos Registros)</h2>
+      
+      <form onSubmit={salvar} className="mb-4">
+        <div className="mb-3">
+          <label className="form-label">Nome</label>
+          <input className="form-control" value={nome} onChange={(e) => setNome(e.target.value)} />
         </div>
-        <button type="submit" className="btn btn-primary">Cadastrar</button>
+        <div className="mb-3">
+          <label className="form-label">Cargo</label>
+          <input className="form-control" value={cargo} onChange={(e) => setCargo(e.target.value)} />
+        </div>
+        <button type="submit" className="btn btn-success">Adicionar Funcionário</button>
       </form>
+
+      <h4>Funcionários Cadastrados ({lista.length})</h4>
+      <ul className="list-group">
+        {lista.map((item) => (
+          <li key={item.id} className="list-group-item d-flex justify-content-between">
+            <span><strong>{item.nome}</strong> - {item.cargo}</span>
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }
